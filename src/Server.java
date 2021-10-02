@@ -42,7 +42,7 @@ public class Server extends Thread {
 
             // Get the message within packet
             receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
-            System.out.println(receivedMessage + " Size: " + receivedMessage.getBytes());
+            System.err.println(" Size: " + receivedMessage.length() + " " + receivedMessage);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
             // Make a reply packet
