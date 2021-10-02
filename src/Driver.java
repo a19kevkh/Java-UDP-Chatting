@@ -14,7 +14,7 @@ public class Driver {
 
 
         server.start();
-        //client.start();
-        //client2.start();
+        client.start();
+        client2.start();
     }
 }

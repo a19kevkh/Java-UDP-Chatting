@@ -27,9 +27,9 @@ public class Server extends Thread {
             //System.out.println("Server received: " + receivedMessage);
 
             // Make a reply packet
-            //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
+            DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
             // Now send back a reply packet to client
-            //serverEnd.sendPacket(replyPacket);
+            serverEnd.sendPacket(replyPacket);
 
             // Check whether it is a “handshake” message
             if (false) {
@@ -63,7 +63,7 @@ public class Server extends Thread {
             // if nothing of the above applies, it is a broadcast message
             // if senderName is a member then ...
             // broadcast(receivedMessage, getSender(receivedPacket));
-            System.out.println(receivedMessage);
+            //(receivedMessage);
         } while (true);
 
 
