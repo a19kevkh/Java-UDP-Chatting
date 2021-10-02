@@ -47,6 +47,9 @@ public class Client extends Thread implements ActionListener {
         clientEnd.sendPacket(requestPacket);
  */
         // Receive a reply from server
+        while(true){
+
+
         System.out.println("1:");
 
         DatagramPacket replyPacket = clientEnd.receivePacket();
@@ -56,6 +59,7 @@ public class Client extends Thread implements ActionListener {
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
         System.out.println("3: "+replyMessage);
+        }
     }
 
     @Override

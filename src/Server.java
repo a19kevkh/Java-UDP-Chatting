@@ -42,12 +42,14 @@ public class Server extends Thread {
 
             // Get the message within packet
             receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
+            String receivedMessagetest = receivedMessage.trim();
             System.err.println(" Size: " + receivedMessage.length() + " " + receivedMessage);
+            System.err.println(" Size: " + receivedMessagetest.length() + " " + receivedMessagetest);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
             // Make a reply packet
             //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
-            DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, client2Address, client2Port);
+            DatagramPacket replyPacket = serverEnd.makeNewPacket(receivedMessagetest, client2Address, client2Port);
             // Now send back a reply packet to client
             serverEnd.sendPacket(replyPacket);
             // Receive a packet from client
