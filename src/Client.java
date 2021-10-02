@@ -19,6 +19,7 @@ public class Client extends Thread implements ActionListener {
         // Create an endPoint on this computer to this
         // program identified by the provided port
         clientEnd = new EndPoint(clientPortNumber, name);
+        //chatGUI = new ChatGUI(this,name);
     }
 
     // Client parameters include server references for processing transmissions
@@ -46,12 +47,15 @@ public class Client extends Thread implements ActionListener {
         clientEnd.sendPacket(requestPacket);
  */
         // Receive a reply from server
-        DatagramPacket replyPacket = clientEnd.receivePacket();
+        System.out.println("1:");
 
+        DatagramPacket replyPacket = clientEnd.receivePacket();
+        System.out.println("2:");
         // Get the message within packet
         String replyMessage = clientEnd.unmarshall(replyPacket.getData());
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
+        System.out.println("3: "+replyMessage);
     }
 
     @Override

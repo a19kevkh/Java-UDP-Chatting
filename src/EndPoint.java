@@ -47,7 +47,7 @@ public class EndPoint {
             System.err.println("Failed to send packet.");
             e.printStackTrace();
         }
-        System.out.println("Sending a packet");
+        System.out.println(name + ": Sending a packet");
     }
 
     public DatagramPacket receivePacket() {
@@ -57,7 +57,7 @@ public class EndPoint {
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
         // Wait to receive request packet
-        System.out.println("Waiting for a packet");
+        System.out.println(name+": Waiting for a packet");
         try {
             socket.receive(packet);
         } catch (IOException e) {

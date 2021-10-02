@@ -1,10 +1,18 @@
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
+import java.sql.SQLOutput;
 
 public class Server extends Thread {
 
     EndPoint serverEnd;
     String replyMessage;
     String name;
+    InetAddress client2Address = null;
+    int client2Port;
+    String receivedMessage = "FUCKED";
+
     public Server(int serverPort, String name) {
         this.name = name;
         // Create an endPoint for this program identified by serverport
@@ -17,19 +25,33 @@ public class Server extends Thread {
 
     }
 
+    public void setClient2Address(String address, int client2Port) {
+        try {
+            client2Address = InetAddress.getByName(address);
+        } catch (UnknownHostException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            System.out.println("No server address found on " + address);
+        }
+        this.client2Port = client2Port;
+    }
+
     public void run() {
         do {
-            // Receive a packet from client
             DatagramPacket receivedPacket = serverEnd.receivePacket();
 
             // Get the message within packet
-            String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
+            receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
+            System.out.println(receivedMessage + " Size: " + receivedMessage.getBytes());
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
             // Make a reply packet
-            DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
+            //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
+            DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, client2Address, client2Port);
             // Now send back a reply packet to client
             serverEnd.sendPacket(replyPacket);
+            // Receive a packet from client
+
 
             // Check whether it is a “handshake” message
             if (false) {
@@ -65,7 +87,6 @@ public class Server extends Thread {
             // broadcast(receivedMessage, getSender(receivedPacket));
             //(receivedMessage);
         } while (true);
-
 
 
     }
