@@ -3,6 +3,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLOutput;
+import java.util.ArrayList;
 
 public class Server extends Thread {
 
@@ -11,12 +12,23 @@ public class Server extends Thread {
     String name;
     InetAddress client2Address = null;
     int client2Port;
-    String receivedMessage = "FUCKED";
+    ArrayList<String> connectedMembers = new ArrayList<String>();
 
     public Server(int serverPort, String name) {
         this.name = name;
         // Create an endPoint for this program identified by serverport
         serverEnd = new EndPoint(serverPort, name);
+    }
+
+    public void updateArray(String arrayName, InetAddress arrayAddress, int arrayPort){
+        String newUser = arrayName + "&" + arrayAddress.toString() + "-" + String.valueOf(arrayPort);
+        //System.out.println(newUser);
+        connectedMembers.add(newUser);
+        /*
+        for(int i = 0; i < connectedMembers.size(); i++){
+            System.err.println(connectedMembers.get(i));
+        }
+        */
     }
 
     public void setReplyMessage(String replyMessage) {
@@ -57,7 +69,7 @@ public class Server extends Thread {
             DatagramPacket receivedPacket = serverEnd.receivePacket();
 
             // Get the message within packet
-            receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
+            String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
@@ -68,7 +80,7 @@ public class Server extends Thread {
             // Now send back a reply packet to client
             serverEnd.sendPacket(replyPacket);
             // Receive a packet from client
-
+            updateArray("Client2",client2Address, client2Port);
 
             // Check whether it is a “handshake” message
             if (false) {
