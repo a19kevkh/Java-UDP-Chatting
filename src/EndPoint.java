@@ -53,7 +53,7 @@ public class EndPoint {
     public DatagramPacket receivePacket() {
 
         // Create a new DatagramPacket object to buffer the received payload
-        byte[] buffer = new byte[65535]; //behöver nog göras om?
+        byte[] buffer = new byte[65535];
         DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
 
         // Wait to receive request packet

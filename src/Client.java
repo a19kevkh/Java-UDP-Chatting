@@ -76,6 +76,6 @@ public class Client extends Thread implements ActionListener {
 
         // clear the GUI input field, using a utility function of ChatGUI
         chatGUI.clearInput();
-        chatGUI.displayMessage(message);
+        chatGUI.displayMessage(message);    //Ta bort sen
     }
 }

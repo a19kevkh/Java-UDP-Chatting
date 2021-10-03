@@ -36,6 +36,11 @@ public class Server extends Thread {
         this.client2Port = client2Port;
     }
 
+    public DatagramPacket getSender(){
+        DatagramPacket sender = null;
+        return sender;
+    }
+
     public void run() {
         do {
             DatagramPacket receivedPacket = serverEnd.receivePacket();
