@@ -59,7 +59,7 @@ public class Server extends Thread {
         return sender;
     }
 
-    public void broadcast(String message, String sender) {
+    public void broadcast(String message) {
         if (connectedMembers.size() > 0) {
             for (int i = 0; i < connectedMembers.size(); i++) {
                 String tempArrayString = connectedMembers.get(i);
@@ -79,6 +79,12 @@ public class Server extends Thread {
                 serverEnd.sendPacket(replyPacket);
             }
         }
+    }
+
+    public String prepareMessage(String name, String message, int index){
+        int endOfCommand = name.length() + index;
+        String finishedMessage = name + " " + message.substring(endOfCommand, message.length());
+        return finishedMessage;
     }
 
     public void run() {
@@ -105,17 +111,15 @@ public class Server extends Thread {
             if (receivedMessage.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
                 updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
+                broadcast("Server- " + getSender(receivedPacket) + " joined the chat!");
                 continue;
             }
 
             // Check whether it is a “tell” message
-            if (receivedMessage.contains("/test")) {
+            if (receivedMessage.contains("/tell")) {
                 // cut away "/tell" from the message
                 // trim any leading spaces from the resulting message
                 // split message into “recipient” name and the message
-                int endOfCommand = getSender(receivedPacket).length() + 6;
-                String finishedMessage = getSender(receivedPacket) + "- " + receivedMessageTrim.substring(endOfCommand, receivedMessageTrim.length());
-                broadcast(finishedMessage, getSender(receivedPacket));
                 continue;
             }
 
@@ -138,6 +142,8 @@ public class Server extends Thread {
             // if senderName is a member then ...
             // broadcast(receivedMessage, getSender(receivedPacket));
             //(receivedMessage);
+            String finishedMessage = prepareMessage(getSender(receivedPacket), receivedMessageTrim, 0);
+            broadcast(finishedMessage);
         } while (true);
 
 
