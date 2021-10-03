@@ -20,15 +20,15 @@ public class Server extends Thread {
         serverEnd = new EndPoint(serverPort, name);
     }
 
-    public void updateArray(String arrayName, InetAddress arrayAddress, int arrayPort){
+    public void updateArray(String arrayName, InetAddress arrayAddress, int arrayPort) {
         String newUser = arrayName + "&" + arrayAddress.toString() + "-" + String.valueOf(arrayPort);
         //System.out.println(newUser);
         connectedMembers.add(newUser);
-
+        /*
         for(int i = 0; i < connectedMembers.size(); i++){
             System.err.println(connectedMembers.get(i));
         }
-
+         */
     }
 
     public void setReplyMessage(String replyMessage) {
@@ -48,20 +48,37 @@ public class Server extends Thread {
         this.client2Port = client2Port;
     }
 
-    public String getSender(DatagramPacket tempPacket){
+    public String getSender(DatagramPacket tempPacket) {
         String sender = "Unknown";
         String tempReceivedMessage = serverEnd.unmarshall(tempPacket.getData());
         int index = tempReceivedMessage.indexOf("-"); //finds the location of - in the array
 
-        if (index != -1)
-        {
-            sender = tempReceivedMessage.substring(0,index); //copies the start of the message until we reach & (& is not included)
+        if (index != -1) {
+            sender = tempReceivedMessage.substring(0, index); //copies the start of the message until we reach & (& is not included)
         }
         return sender;
     }
 
-    public void broadcast(String message, String sender){
+    public void broadcast(String message, String sender) {
+        if (connectedMembers.size() > 0) {
+            for (int i = 0; i < connectedMembers.size(); i++) {
+                String tempArrayString = connectedMembers.get(i);
+                int indexAND = tempArrayString.indexOf("&") + 2;
+                int indexLINE = tempArrayString.indexOf("-");
+                InetAddress clientAddress = null;
+                try {
+                    clientAddress = InetAddress.getByName(tempArrayString.substring(indexAND, indexLINE));
+                } catch (UnknownHostException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                    System.out.println("No server address found");
+                }
+                String clientPort = tempArrayString.substring(indexLINE + 1, tempArrayString.length());
 
+                DatagramPacket replyPacket = serverEnd.makeNewPacket(message, clientAddress, Integer.parseInt(clientPort));
+                serverEnd.sendPacket(replyPacket);
+            }
+        }
     }
 
     public void run() {
@@ -71,7 +88,7 @@ public class Server extends Thread {
             // Get the message within packet
             String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
-            System.out.println(receivedMessageTrim);
+            //System.out.println(receivedMessageTrim);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
             // Make a reply packet
@@ -88,14 +105,17 @@ public class Server extends Thread {
             if (receivedMessage.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
                 updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
-                System.out.println("handshake!");
+                continue;
             }
 
             // Check whether it is a “tell” message
-            if (false) {
+            if (receivedMessage.contains("/test")) {
                 // cut away "/tell" from the message
                 // trim any leading spaces from the resulting message
                 // split message into “recipient” name and the message
+                int endOfCommand = getSender(receivedPacket).length() + 6;
+                String finishedMessage = getSender(receivedPacket) + "- " + receivedMessageTrim.substring(endOfCommand, receivedMessageTrim.length());
+                broadcast(finishedMessage, getSender(receivedPacket));
                 continue;
             }
 
