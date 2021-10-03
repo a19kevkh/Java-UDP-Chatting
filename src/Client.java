@@ -38,8 +38,6 @@ public class Client extends Thread implements ActionListener {
     public void run() {
         chatGUI = new ChatGUI(this,name);
 /*
-
-
         //System.out.println("HIT");
         // Make a request packet
         DatagramPacket requestPacket = clientEnd.makeNewPacket(requestMessage, serverAddress, serverPortNumber);
@@ -48,17 +46,11 @@ public class Client extends Thread implements ActionListener {
  */
         // Receive a reply from server
         while(true){
-
-
-        System.out.println("1:");
-
         DatagramPacket replyPacket = clientEnd.receivePacket();
-        System.out.println("2:");
         // Get the message within packet
         String replyMessage = clientEnd.unmarshall(replyPacket.getData());
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
-        System.out.println("3: "+replyMessage);
         }
     }
 
