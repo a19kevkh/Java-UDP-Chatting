@@ -36,9 +36,20 @@ public class Server extends Thread {
         this.client2Port = client2Port;
     }
 
-    public DatagramPacket getSender(){
-        DatagramPacket sender = null;
+    public String getSender(DatagramPacket tempPacket){
+        String sender = "Unknown";
+        String tempReceivedMessage = serverEnd.unmarshall(tempPacket.getData());
+        int index = tempReceivedMessage.indexOf("-"); //finds the location of - in the array
+
+        if (index != -1)
+        {
+            sender = tempReceivedMessage.substring(0,index); //copies the start of the message until we reach & (& is not included)
+        }
         return sender;
+    }
+
+    public void broadcast(String message, String sender){
+
     }
 
     public void run() {
@@ -53,6 +64,7 @@ public class Server extends Thread {
             // Make a reply packet
             //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
             DatagramPacket replyPacket = serverEnd.makeNewPacket(receivedMessageTrim, client2Address, client2Port);
+            System.out.println(getSender(receivedPacket));
             // Now send back a reply packet to client
             serverEnd.sendPacket(replyPacket);
             // Receive a packet from client
