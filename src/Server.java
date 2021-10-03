@@ -38,6 +38,7 @@ public class Server extends Thread {
 
     public void run() {
         do {
+
             DatagramPacket receivedPacket = serverEnd.receivePacket();
 
             // Get the message within packet
@@ -52,10 +53,26 @@ public class Server extends Thread {
             serverEnd.sendPacket(replyPacket);
             // Receive a packet from client
 
+            String x = "Unknown";
+            int index = replyMessage.indexOf("-"); //finds the location of & in the array
+            //System.out.println("index: " + index);
+            if (index != -1)
+            {
+                x = replyMessage.substring(0,index); //copies the start of the message until we reach & (& is not included)
+            }
+/*
+            String Y = "Unknown";
+            int indeY = replyMessage.indexOf("/tell"); //finds the location of & in the array
+            //System.out.println("index: " + index);
+            if (index != -1)
+            {
+                Y = replyMessage.substring(0,index); //copies the start of the message until we reach & (& is not included)
+            }
 
+ */
             // Check whether it is a “handshake” message
             if (false) {
-                // Get client name (it is a new chat-room member!)
+
                 continue;
             }
 

@@ -49,6 +49,17 @@ public class Client extends Thread implements ActionListener {
         DatagramPacket replyPacket = clientEnd.receivePacket();
         // Get the message within packet
         String replyMessage = clientEnd.unmarshall(replyPacket.getData());
+
+            String x = "Unknown";
+            int index = replyMessage.indexOf("-"); //finds the location of & in the array
+            //System.out.println("index: " + index);
+            if (index != -1)
+            {
+                x = replyMessage.substring(0,index); //copies the start of the message until we reach & (& is not included)
+            }
+            //set reply message
+
+
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
         }
