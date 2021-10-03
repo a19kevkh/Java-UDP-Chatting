@@ -19,8 +19,7 @@ public class Client extends Thread implements ActionListener {
         // Create an endPoint on this computer to this
         // program identified by the provided port
         clientEnd = new EndPoint(clientPortNumber, name);
-        chatGUI = new ChatGUI(this,name);
-
+        //chatGUI = new ChatGUI(this,name);
     }
 
     // Client parameters include server references for processing transmissions
@@ -36,7 +35,24 @@ public class Client extends Thread implements ActionListener {
         this.serverPortNumber = serverPortNumber;
     }
 
-
+    public void run() {
+        chatGUI = new ChatGUI(this,name);
+/*
+        //System.out.println("HIT");
+        // Make a request packet
+        DatagramPacket requestPacket = clientEnd.makeNewPacket(requestMessage, serverAddress, serverPortNumber);
+        // Now send it to server
+        clientEnd.sendPacket(requestPacket);
+ */
+        // Receive a reply from server
+        while(true){
+        DatagramPacket replyPacket = clientEnd.receivePacket();
+        // Get the message within packet
+        String replyMessage = clientEnd.unmarshall(replyPacket.getData());
+        //System.out.println(name + " received: " + replyMessage);
+        chatGUI.displayMessage(replyMessage);
+        }
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -60,6 +76,6 @@ public class Client extends Thread implements ActionListener {
 
         // clear the GUI input field, using a utility function of ChatGUI
         chatGUI.clearInput();
-
+        chatGUI.displayMessage(message);
     }
 }

@@ -8,13 +8,15 @@ public class Driver {
         //client.setRequestMessage("Request message");
 
         client2.setServerParameters("Localhost", 6666);
+        server.setClient2Address("Localhost", 6668);
         //client2.setRequestMessage("Request message");
 
         server.setReplyMessage("Reply message");
 
 
         server.start();
-        //client.start();
-        //client2.start();
+
+        client2.start();
+        client.start();
     }
 }
