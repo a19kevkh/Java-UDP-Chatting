@@ -24,11 +24,11 @@ public class Server extends Thread {
         String newUser = arrayName + "&" + arrayAddress.toString() + "-" + String.valueOf(arrayPort);
         //System.out.println(newUser);
         connectedMembers.add(newUser);
-        /*
+
         for(int i = 0; i < connectedMembers.size(); i++){
             System.err.println(connectedMembers.get(i));
         }
-        */
+
     }
 
     public void setReplyMessage(String replyMessage) {
@@ -71,21 +71,24 @@ public class Server extends Thread {
             // Get the message within packet
             String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
+            System.out.println(receivedMessageTrim);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
             // Make a reply packet
             //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
-            DatagramPacket replyPacket = serverEnd.makeNewPacket(receivedMessageTrim, client2Address, client2Port);
-            System.out.println(getSender(receivedPacket));
+
+            //DatagramPacket replyPacket = serverEnd.makeNewPacket(receivedMessageTrim, client2Address, client2Port);
+            //System.out.println(getSender(receivedPacket));
             // Now send back a reply packet to client
-            serverEnd.sendPacket(replyPacket);
+            //serverEnd.sendPacket(replyPacket);
             // Receive a packet from client
-            updateArray("Client2",client2Address, client2Port);
+            //updateArray("Client2",client2Address, client2Port);
 
             // Check whether it is a “handshake” message
-            if (false) {
+            if (receivedMessage.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
-                continue;
+                updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
+                System.out.println("handshake!");
             }
 
             // Check whether it is a “tell” message
