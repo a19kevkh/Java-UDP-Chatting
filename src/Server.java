@@ -13,6 +13,7 @@ public class Server extends Thread {
     InetAddress client2Address = null;
     int client2Port;
     ArrayList<String> connectedMembers = new ArrayList<String>();
+    ArrayList<String> memberNames = new ArrayList<String>();
 
     public Server(int serverPort, String name) {
         this.name = name;
@@ -30,6 +31,7 @@ public class Server extends Thread {
             }
         }
         connectedMembers.add(newUser);
+        memberNames.add(arrayName);
         return false;
     }
 
@@ -82,9 +84,27 @@ public class Server extends Thread {
             }
         }
     }
+    public String getReceiver(String name, String trimmedMsg, int commandLength){
+        // "name-/tell user msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        int commandPartEnd = name.length() + commandLength + 2;
+        String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+        for(int i = 0; i < memberNames.size(); i++){
+            if(part3.contains(memberNames.get(i))){
+                return memberNames.get(i);
+            }
+        }
+        return null;
+    }
 
-    public String prepareBroadcastMessage(String name, String trimmedMsg){
-    return "";
+    public String getMessageOnly(String name, String trimmedMsg, int commandLength){
+        // "name-/tell user msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        int commandPartEnd = name.length() + commandLength + 2;
+        String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+        String user = getReceiver(name, trimmedMsg, commandLength);
+        String msg = part3.substring(user.length() + 1, part3.length());
+    return msg;
     }
 
     public String prepareMessage(String name, String message, int index){
@@ -108,7 +128,7 @@ public class Server extends Thread {
             // Get the message within packet
             String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
-            System.out.println("rmt= "+receivedMessageTrim);
+            System.err.println("rmt= "+receivedMessageTrim);
             //System.out.println(receivedMessageTrim);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
@@ -123,7 +143,7 @@ public class Server extends Thread {
             //updateArray("Client2",client2Address, client2Port);
 
             // Check whether it is a “handshake” message
-            if (receivedMessage.contains("/handshake")) {
+            if (receivedMessageTrim.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
                 boolean taken = updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
                 if(!taken){
@@ -136,7 +156,7 @@ public class Server extends Thread {
             }
 
             // Check whether it is a “tell” message
-            if (receivedMessage.contains("/tell")) {
+            if (receivedMessageTrim.contains("/tell")) {
                 String memberData = null;
                 //String finishedMessage = null;
                 int index = 6;
@@ -180,7 +200,16 @@ public class Server extends Thread {
             }
 
             // Check whether it is a “list” message
-            if (false) {
+            if (receivedMessageTrim.contains("/test")) {
+                String user = getReceiver(getSender(receivedPacket),receivedMessageTrim,5);
+                String msg = getMessageOnly(getSender(receivedPacket),receivedMessageTrim,5);
+                if(user != null){
+                    System.out.println("User = [" + user + "]");
+                    System.out.println("Msg = [" + msg + "]");
+                }
+                else {
+                    System.out.println("ERR");
+                }
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
