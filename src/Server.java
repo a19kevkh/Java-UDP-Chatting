@@ -25,9 +25,7 @@ public class Server extends Thread {
         boolean taken = false;
         //System.out.println(newUser);
         for(int i = 0; i < connectedMembers.size(); i++){
-            System.err.println(connectedMembers.get(i));
             if(connectedMembers.get(i).contains(arrayName)){
-            System.err.println("Username taken");
             return true;
             }
         }
@@ -86,9 +84,17 @@ public class Server extends Thread {
     }
 
     public String prepareMessage(String name, String message, int index){
-        int endOfCommand = name.length() + index;
-        String finishedMessage = name + " " + message.substring(endOfCommand, message.length());
+        int endOfCommand = name.length() + index + 1;
+        String finishedMessage = name + "- " + message.substring(endOfCommand, message.length());
+        System.err.println("fn= "+finishedMessage);
         return finishedMessage;
+    }
+
+    public String getMessage(String finishedMessage){
+        int index = finishedMessage.indexOf("-") + 1;
+        String message = finishedMessage.substring(index,finishedMessage.length());
+        System.err.println("msg= "+message);
+        return message;
     }
 
     public void run() {
@@ -126,6 +132,42 @@ public class Server extends Thread {
 
             // Check whether it is a “tell” message
             if (receivedMessage.contains("/tell")) {
+                String memberData = null;
+                //String finishedMessage = null;
+                int index = 6;
+                String finishedMessage = prepareMessage(getSender(receivedPacket), receivedMessageTrim, index); //6= ["/tell "] + index = ["clientName"]
+                String message = getMessage(finishedMessage);
+                for(int i = 0; i < connectedMembers.size(); i++){
+                    int indexAND = connectedMembers.get(i).indexOf("&");
+                    String clientName = connectedMembers.get(i).substring(0, indexAND);
+                    System.out.println("clientName= " +clientName+" RP= " + getSender(receivedPacket) + " FM=" + finishedMessage);
+                    if(message.contains(clientName)){
+                        memberData = connectedMembers.get(i);
+                    }
+                }
+
+                if(memberData != null){
+                    int indexAND = memberData.indexOf("&") + 2;
+                    int indexLINE = memberData.indexOf("-");
+
+                    String clientAddressString = memberData.substring(indexAND,indexLINE);
+                    String clientPort = memberData.substring(indexLINE + 1, memberData.length());
+                    InetAddress clientAddress = null;
+                    try {
+                        clientAddress = InetAddress.getByName(clientAddressString);
+                    } catch (UnknownHostException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                        System.out.println("No server address found");
+                    }
+                    System.err.println(finishedMessage + ","+clientAddressString+","+clientPort);
+                    DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, clientAddress, Integer.parseInt(clientPort));
+                    serverEnd.sendPacket(replyPacket);
+                }
+                else{
+                    broadcast("Server- Cannot find user");
+                }
+
                 // cut away "/tell" from the message
                 // trim any leading spaces from the resulting message
                 // split message into “recipient” name and the message
