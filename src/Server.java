@@ -83,6 +83,10 @@ public class Server extends Thread {
         }
     }
 
+    public String prepareBroadcastMessage(String name, String trimmedMsg){
+    return "";
+    }
+
     public String prepareMessage(String name, String message, int index){
         int endOfCommand = name.length() + index + 1;
         String finishedMessage = name + "- " + message.substring(endOfCommand, message.length());
@@ -104,6 +108,7 @@ public class Server extends Thread {
             // Get the message within packet
             String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
+            System.out.println("rmt= "+receivedMessageTrim);
             //System.out.println(receivedMessageTrim);
             //System.out.println("Server received: " + receivedMessage);
             //byta ut getAdress och port till hårdkodad client2
@@ -140,7 +145,7 @@ public class Server extends Thread {
                 for(int i = 0; i < connectedMembers.size(); i++){
                     int indexAND = connectedMembers.get(i).indexOf("&");
                     String clientName = connectedMembers.get(i).substring(0, indexAND);
-                    System.out.println("clientName= " +clientName+" RP= " + getSender(receivedPacket) + " FM=" + finishedMessage);
+                    //System.out.println("clientName= " +clientName+" RP= " + getSender(receivedPacket) + " FM=" + finishedMessage);
                     if(message.contains(clientName)){
                         memberData = connectedMembers.get(i);
                     }
