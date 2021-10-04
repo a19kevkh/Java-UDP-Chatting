@@ -20,15 +20,19 @@ public class Server extends Thread {
         serverEnd = new EndPoint(serverPort, name);
     }
 
-    public void updateArray(String arrayName, InetAddress arrayAddress, int arrayPort) {
+    public boolean updateArray(String arrayName, InetAddress arrayAddress, int arrayPort) {
         String newUser = arrayName + "&" + arrayAddress.toString() + "-" + String.valueOf(arrayPort);
+        boolean taken = false;
         //System.out.println(newUser);
-        connectedMembers.add(newUser);
-        /*
         for(int i = 0; i < connectedMembers.size(); i++){
             System.err.println(connectedMembers.get(i));
+            if(connectedMembers.get(i).contains(arrayName)){
+            System.err.println("Username taken");
+            return true;
+            }
         }
-         */
+        connectedMembers.add(newUser);
+        return false;
     }
 
     public void setReplyMessage(String replyMessage) {
@@ -110,8 +114,13 @@ public class Server extends Thread {
             // Check whether it is a “handshake” message
             if (receivedMessage.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
-                updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
-                broadcast("Server- " + getSender(receivedPacket) + " joined the chat!");
+                boolean taken = updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
+                if(!taken){
+                    broadcast("Server- " + getSender(receivedPacket) + " joined the chat!");
+                }
+                else {
+                    broadcast("Server- Username already taken");    //GÖR OM, skicka som pm till clienten.
+                }
                 continue;
             }
 

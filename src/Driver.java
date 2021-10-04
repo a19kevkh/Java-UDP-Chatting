@@ -2,7 +2,7 @@ public class Driver {
     public static void main(String[] args) {
         Server server = new Server(6666,"server");
         Client client = new Client(6667,"client1");
-        Client client2 = new Client(6668,"client2");
+        Client client2 = new Client(6668,"client1");
         Client client3 = new Client(6669,"client3");
 
         client.setServerParameters("Localhost", 6666);
@@ -14,7 +14,6 @@ public class Driver {
         //client2.setRequestMessage("Request message");
 
         server.setReplyMessage("Reply message");
-
 
         server.start();
         client3.start();
