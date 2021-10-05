@@ -109,6 +109,15 @@ public class Server extends Thread {
 
     }
 
+    public boolean checkConnection(String username){
+        for(int i = 0; i < memberNames.size(); i++){
+            if(username == memberNames.get(i)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void run() {
         do {
             DatagramPacket receivedPacket = serverEnd.receivePacket();
@@ -132,13 +141,21 @@ public class Server extends Thread {
 
             // Check whether it is a “tell” message
             if (receivedMessageTrim.contains("/tell")) {
-                String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
-                String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
-                sendPrivateMessage(msg, getSender(receivedPacket),user);
-                sendPrivateMessage(msg, getSender(receivedPacket),getSender(receivedPacket));
-                // cut away "/tell" from the message
-                // trim any leading spaces from the resulting message
-                // split message into “recipient” name and the message
+                boolean connected = checkConnection(getSender(receivedPacket));
+                System.err.println(connected);
+                if(connected) {
+                    String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
+                    String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
+                    sendPrivateMessage(msg, getSender(receivedPacket), user);
+                    sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
+                    // cut away "/tell" from the message
+                    // trim any leading spaces from the resulting message
+                    // split message into “recipient” name and the message
+                }
+                else{
+                    System.err.println("ERROR");
+                }
+                connected = false;
                 continue;
             }
 
