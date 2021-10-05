@@ -10,10 +10,7 @@ public class Driver {
 
         client2.setServerParameters("Localhost", 6666);
         client3.setServerParameters("Localhost", 6666);
-        server.setClient2Address("Localhost", 6668);
         //client2.setRequestMessage("Request message");
-
-        server.setReplyMessage("Reply message");
 
         server.start();
         client3.start();

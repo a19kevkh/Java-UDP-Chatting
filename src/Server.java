@@ -8,11 +8,9 @@ import java.util.ArrayList;
 public class Server extends Thread {
 
     EndPoint serverEnd;
-    String replyMessage;
     String name;
-    InetAddress client2Address = null;
-    int client2Port;
     ArrayList<String> connectedMembers = new ArrayList<String>();
+    ArrayList<String> memberNames = new ArrayList<String>();
 
     public Server(int serverPort, String name) {
         this.name = name;
@@ -30,24 +28,8 @@ public class Server extends Thread {
             }
         }
         connectedMembers.add(newUser);
+        memberNames.add(arrayName);
         return false;
-    }
-
-    public void setReplyMessage(String replyMessage) {
-
-        this.replyMessage = replyMessage;
-
-    }
-
-    public void setClient2Address(String address, int client2Port) {
-        try {
-            client2Address = InetAddress.getByName(address);
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            System.out.println("No server address found on " + address);
-        }
-        this.client2Port = client2Port;
     }
 
     public String getSender(DatagramPacket tempPacket) {
@@ -61,44 +43,70 @@ public class Server extends Thread {
         return sender;
     }
 
-    public void broadcast(String message) {
-        if (connectedMembers.size() > 0) {
-            for (int i = 0; i < connectedMembers.size(); i++) {
-                String tempArrayString = connectedMembers.get(i);
-                int indexAND = tempArrayString.indexOf("&") + 2;
-                int indexLINE = tempArrayString.indexOf("-");
-                InetAddress clientAddress = null;
-                try {
-                    clientAddress = InetAddress.getByName(tempArrayString.substring(indexAND, indexLINE));
-                } catch (UnknownHostException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    System.out.println("No server address found");
-                }
-                String clientPort = tempArrayString.substring(indexLINE + 1, tempArrayString.length());
-
-                DatagramPacket replyPacket = serverEnd.makeNewPacket(message, clientAddress, Integer.parseInt(clientPort));
-                serverEnd.sendPacket(replyPacket);
-            }
+    public void broadcast(String message, String sender) {
+        for (int i = 0; i < memberNames.size(); i++) {
+            sendPrivateMessage(message, sender, memberNames.get(i));
         }
     }
 
-    public String prepareBroadcastMessage(String name, String trimmedMsg){
-    return "";
+    public void sendPrivateMessage(String msg, String sender, String receiver){
+        String memberData = null;
+        for(int i = 0; i < connectedMembers.size(); i++){
+            if(connectedMembers.get(i).contains(receiver)){
+                memberData = connectedMembers.get(i);
+            }
+        }
+
+        if(memberData != null) {
+            int indexAND = memberData.indexOf("&") + 2;
+            int indexLINE = memberData.indexOf("-");
+
+            String clientAddressString = memberData.substring(indexAND, indexLINE);
+            String clientPort = memberData.substring(indexLINE + 1, memberData.length());
+            InetAddress clientAddress = null;
+            try {
+                clientAddress = InetAddress.getByName(clientAddressString);
+            } catch (UnknownHostException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+                System.out.println("No server address found");
+            }
+            String finishedMessage = sender + "- " + msg;
+            DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, clientAddress, Integer.parseInt(clientPort));
+            serverEnd.sendPacket(replyPacket);
+        }
+        else{
+            sendPrivateMessage("Cannot find user", "Server", sender);
+        }
+    }
+    public String getReceiver(String name, String trimmedMsg, int commandLength){
+        // "name-/tell user msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        int commandPartEnd = name.length() + commandLength + 2;
+        String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+        for(int i = 0; i < memberNames.size(); i++){
+            if(part3.contains(memberNames.get(i))){
+                return memberNames.get(i);
+            }
+        }
+        return null;
     }
 
-    public String prepareMessage(String name, String message, int index){
-        int endOfCommand = name.length() + index + 1;
-        String finishedMessage = name + "- " + message.substring(endOfCommand, message.length());
-        System.err.println("fn= "+finishedMessage);
-        return finishedMessage;
-    }
+    public String getMessageOnly(String name, String trimmedMsg, int commandLength){
+        // "name-/tell user msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        if(commandLength > 0){
+            int commandPartEnd = name.length() + commandLength + 2;
+            String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+            String user = getReceiver(name, trimmedMsg, commandLength);
+            String msg = part3.substring(user.length() + 1, part3.length());
+            return msg;
+        }
+        else{
+            String part3 = trimmedMsg.substring(name.length() + 1, trimmedMsg.length());
+            return part3;
+        }
 
-    public String getMessage(String finishedMessage){
-        int index = finishedMessage.indexOf("-") + 1;
-        String message = finishedMessage.substring(index,finishedMessage.length());
-        System.err.println("msg= "+message);
-        return message;
     }
 
     public void run() {
@@ -108,71 +116,26 @@ public class Server extends Thread {
             // Get the message within packet
             String receivedMessage = serverEnd.unmarshall(receivedPacket.getData());
             String receivedMessageTrim = receivedMessage.trim();
-            System.out.println("rmt= "+receivedMessageTrim);
-            //System.out.println(receivedMessageTrim);
-            //System.out.println("Server received: " + receivedMessage);
-            //byta ut getAdress och port till hårdkodad client2
-            // Make a reply packet
-            //DatagramPacket replyPacket = serverEnd.makeNewPacket(replyMessage, receivedPacket.getAddress(), receivedPacket.getPort());
-
-            //DatagramPacket replyPacket = serverEnd.makeNewPacket(receivedMessageTrim, client2Address, client2Port);
-            //System.out.println(getSender(receivedPacket));
-            // Now send back a reply packet to client
-            //serverEnd.sendPacket(replyPacket);
-            // Receive a packet from client
-            //updateArray("Client2",client2Address, client2Port);
 
             // Check whether it is a “handshake” message
-            if (receivedMessage.contains("/handshake")) {
+            if (receivedMessageTrim.contains("/handshake")) {
                 // Get client name (it is a new chat-room member!)
                 boolean taken = updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
                 if(!taken){
-                    broadcast("Server- " + getSender(receivedPacket) + " joined the chat!");
+                    broadcast(getSender(receivedPacket) + " joined the chat!", "Server");
                 }
                 else {
-                    broadcast("Server- Username already taken");    //GÖR OM, skicka som pm till clienten.
+                    sendPrivateMessage("Username already taken", "Server", getSender(receivedPacket));
                 }
                 continue;
             }
 
             // Check whether it is a “tell” message
-            if (receivedMessage.contains("/tell")) {
-                String memberData = null;
-                //String finishedMessage = null;
-                int index = 6;
-                String finishedMessage = prepareMessage(getSender(receivedPacket), receivedMessageTrim, index); //6= ["/tell "] + index = ["clientName"]
-                String message = getMessage(finishedMessage);
-                for(int i = 0; i < connectedMembers.size(); i++){
-                    int indexAND = connectedMembers.get(i).indexOf("&");
-                    String clientName = connectedMembers.get(i).substring(0, indexAND);
-                    //System.out.println("clientName= " +clientName+" RP= " + getSender(receivedPacket) + " FM=" + finishedMessage);
-                    if(message.contains(clientName)){
-                        memberData = connectedMembers.get(i);
-                    }
-                }
-
-                if(memberData != null){
-                    int indexAND = memberData.indexOf("&") + 2;
-                    int indexLINE = memberData.indexOf("-");
-
-                    String clientAddressString = memberData.substring(indexAND,indexLINE);
-                    String clientPort = memberData.substring(indexLINE + 1, memberData.length());
-                    InetAddress clientAddress = null;
-                    try {
-                        clientAddress = InetAddress.getByName(clientAddressString);
-                    } catch (UnknownHostException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                        System.out.println("No server address found");
-                    }
-                    System.err.println(finishedMessage + ","+clientAddressString+","+clientPort);
-                    DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, clientAddress, Integer.parseInt(clientPort));
-                    serverEnd.sendPacket(replyPacket);
-                }
-                else{
-                    broadcast("Server- Cannot find user");
-                }
-
+            if (receivedMessageTrim.contains("/tell")) {
+                String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
+                String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
+                sendPrivateMessage(msg, getSender(receivedPacket),user);
+                sendPrivateMessage(msg, getSender(receivedPacket),getSender(receivedPacket));
                 // cut away "/tell" from the message
                 // trim any leading spaces from the resulting message
                 // split message into “recipient” name and the message
@@ -180,7 +143,8 @@ public class Server extends Thread {
             }
 
             // Check whether it is a “list” message
-            if (false) {
+            if (receivedMessageTrim.contains("/list")) {
+                //sendPrivateMessage("testtest","Server",getSender(receivedPacket));
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
@@ -198,10 +162,9 @@ public class Server extends Thread {
             // if senderName is a member then ...
             // broadcast(receivedMessage, getSender(receivedPacket));
             //(receivedMessage);
-            String finishedMessage = prepareMessage(getSender(receivedPacket), receivedMessageTrim, 0);
-            broadcast(finishedMessage);
+
+            String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
+            broadcast(finishedMessage, getSender(receivedPacket));
         } while (true);
-
-
     }
 }
