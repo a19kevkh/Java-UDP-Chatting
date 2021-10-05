@@ -151,12 +151,17 @@ public class Server extends Thread {
                 boolean connected = checkConnection(getSender(receivedPacket));
                 if(connected) {
                     String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
-                    String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
-                    sendPrivateMessage(msg, getSender(receivedPacket), user);
-                    sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
-                    // cut away "/tell" from the message
-                    // trim any leading spaces from the resulting message
-                    // split message into “recipient” name and the message
+                    if(user !=null){
+                        String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
+                        sendPrivateMessage(msg, getSender(receivedPacket), user);
+                        sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
+                        // cut away "/tell" from the message
+                        // trim any leading spaces from the resulting message
+                        // split message into “recipient” name and the message
+                    }
+                    else{
+                        sendPrivateMessage("Cannot find user","Server",getSender(receivedPacket));
+                    }
                 }
                 else{
                     sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
