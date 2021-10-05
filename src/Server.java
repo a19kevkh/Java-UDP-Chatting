@@ -8,10 +8,7 @@ import java.util.ArrayList;
 public class Server extends Thread {
 
     EndPoint serverEnd;
-    String replyMessage;
     String name;
-    InetAddress client2Address = null;
-    int client2Port;
     ArrayList<String> connectedMembers = new ArrayList<String>();
     ArrayList<String> memberNames = new ArrayList<String>();
 
@@ -35,23 +32,6 @@ public class Server extends Thread {
         return false;
     }
 
-    public void setReplyMessage(String replyMessage) {
-
-        this.replyMessage = replyMessage;
-
-    }
-
-    public void setClient2Address(String address, int client2Port) {
-        try {
-            client2Address = InetAddress.getByName(address);
-        } catch (UnknownHostException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            System.out.println("No server address found on " + address);
-        }
-        this.client2Port = client2Port;
-    }
-
     public String getSender(DatagramPacket tempPacket) {
         String sender = "Unknown";
         String tempReceivedMessage = serverEnd.unmarshall(tempPacket.getData());
@@ -63,26 +43,9 @@ public class Server extends Thread {
         return sender;
     }
 
-    public void broadcast(String message) {
-        if (connectedMembers.size() > 0) {
-            for (int i = 0; i < connectedMembers.size(); i++) {
-                //sendPrivateMessage(message, "Server", "");
-                String tempArrayString = connectedMembers.get(i);
-                int indexAND = tempArrayString.indexOf("&") + 2;
-                int indexLINE = tempArrayString.indexOf("-");
-                InetAddress clientAddress = null;
-                try {
-                    clientAddress = InetAddress.getByName(tempArrayString.substring(indexAND, indexLINE));
-                } catch (UnknownHostException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                    System.out.println("No server address found");
-                }
-                String clientPort = tempArrayString.substring(indexLINE + 1, tempArrayString.length());
-
-                DatagramPacket replyPacket = serverEnd.makeNewPacket(message, clientAddress, Integer.parseInt(clientPort));
-                serverEnd.sendPacket(replyPacket);
-            }
+    public void broadcast(String message, String sender) {
+        for (int i = 0; i < memberNames.size(); i++) {
+            sendPrivateMessage(message, sender, memberNames.get(i));
         }
     }
 
@@ -159,10 +122,10 @@ public class Server extends Thread {
                 // Get client name (it is a new chat-room member!)
                 boolean taken = updateArray(getSender(receivedPacket), receivedPacket.getAddress(), receivedPacket.getPort());
                 if(!taken){
-                    broadcast("Server- " + getSender(receivedPacket) + " joined the chat!");
+                    broadcast(getSender(receivedPacket) + " joined the chat!", "Server");
                 }
                 else {
-                    broadcast("Server- Username already taken");    //GÖR OM, skicka som pm till clienten.
+                    sendPrivateMessage("Username already taken", "Server", getSender(receivedPacket));
                 }
                 continue;
             }
@@ -181,7 +144,7 @@ public class Server extends Thread {
 
             // Check whether it is a “list” message
             if (receivedMessageTrim.contains("/list")) {
-                sendPrivateMessage("testtest","Server",getSender(receivedPacket));
+                //sendPrivateMessage("testtest","Server",getSender(receivedPacket));
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
@@ -201,9 +164,7 @@ public class Server extends Thread {
             //(receivedMessage);
 
             String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
-            broadcast(getSender(receivedPacket) + "- " +finishedMessage);
+            broadcast(finishedMessage, getSender(receivedPacket));
         } while (true);
-
-
     }
 }
