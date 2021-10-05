@@ -171,14 +171,39 @@ public class Server extends Thread {
 
             // Check whether it is a “list” message
             if (receivedMessageTrim.contains("/list")) {
-                
+                boolean connected = checkConnection(getSender(receivedPacket));
+                if(connected) {
+                    sendPrivateMessage("All connected users:","Server",getSender(receivedPacket));
+                    for(int i = 0; i < memberNames.size(); i++){
+                        sendPrivateMessage(memberNames.get(i),"Server",getSender(receivedPacket));
+                    }
+                    sendPrivateMessage("Done!","Server",getSender(receivedPacket));
+                }
+                else{
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+                }
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
             }
 
             // Check whether it is a “leave” message
-            if (false) {
+            if (receivedMessageTrim.contains("/leave")) {
+                boolean connected = checkConnection(getSender(receivedPacket));
+                if(connected) {
+                    for(int i = 0; i < memberNames.size(); i++){
+                        if(getSender(receivedPacket).contains(memberNames.get(i))){
+                            System.out.println(connectedMembers.get(i) + " " + memberNames.get(i));
+                            connectedMembers.remove(i);
+                            memberNames.remove(i);
+                            broadcast(getSender(receivedPacket) + " left the chat!", "Server");
+                        }
+                    }
+                }
+
+                else{
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+                }
                 // (Server) broadcasts notification to members
                 // broadcast(senderName + " left the chat", "Server");
                 // remove sender name from chat members

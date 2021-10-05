@@ -2,7 +2,7 @@ public class Driver {
     public static void main(String[] args) {
         Server server = new Server(6666,"server");
         Client client = new Client(6667,"Erik");
-        Client client2 = new Client(6668,"Erik");
+        Client client2 = new Client(6668,"Tedd");
         Client client3 = new Client(6669,"client3");
 
         client.setServerParameters("Localhost", 6666);
