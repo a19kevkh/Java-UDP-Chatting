@@ -66,6 +66,7 @@ public class Server extends Thread {
     public void broadcast(String message) {
         if (connectedMembers.size() > 0) {
             for (int i = 0; i < connectedMembers.size(); i++) {
+                //sendPrivateMessage(message, "Server", "");
                 String tempArrayString = connectedMembers.get(i);
                 int indexAND = tempArrayString.indexOf("&") + 2;
                 int indexLINE = tempArrayString.indexOf("-");
@@ -168,38 +169,10 @@ public class Server extends Thread {
 
             // Check whether it is a “tell” message
             if (receivedMessageTrim.contains("/tell")) {
-                String memberData = null;
                 String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
                 String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
-
-                for(int i = 0; i < connectedMembers.size(); i++){
-                    if(connectedMembers.get(i).contains(user)){
-                        memberData = connectedMembers.get(i);
-                    }
-                }
-
-                if(memberData != null){
-                    int indexAND = memberData.indexOf("&") + 2;
-                    int indexLINE = memberData.indexOf("-");
-
-                    String clientAddressString = memberData.substring(indexAND,indexLINE);
-                    String clientPort = memberData.substring(indexLINE + 1, memberData.length());
-                    InetAddress clientAddress = null;
-                    try {
-                        clientAddress = InetAddress.getByName(clientAddressString);
-                    } catch (UnknownHostException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                        System.out.println("No server address found");
-                    }
-                    String finishedMessage = getSender(receivedPacket) + "- " + msg;
-                    DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, clientAddress, Integer.parseInt(clientPort));
-                    serverEnd.sendPacket(replyPacket);
-                }
-                else{
-                    broadcast("Server- Cannot find user");
-                }
-
+                sendPrivateMessage(msg, getSender(receivedPacket),user);
+                sendPrivateMessage(msg, getSender(receivedPacket),getSender(receivedPacket));
                 // cut away "/tell" from the message
                 // trim any leading spaces from the resulting message
                 // split message into “recipient” name and the message
@@ -207,7 +180,7 @@ public class Server extends Thread {
             }
 
             // Check whether it is a “list” message
-            if (receivedMessageTrim.contains("/test")) {
+            if (receivedMessageTrim.contains("/list")) {
                 sendPrivateMessage("testtest","Server",getSender(receivedPacket));
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
