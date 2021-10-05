@@ -171,7 +171,7 @@ public class Server extends Thread {
 
             // Check whether it is a “list” message
             if (receivedMessageTrim.contains("/list")) {
-                //sendPrivateMessage("testtest","Server",getSender(receivedPacket));
+                
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
@@ -189,9 +189,14 @@ public class Server extends Thread {
             // if senderName is a member then ...
             // broadcast(receivedMessage, getSender(receivedPacket));
             //(receivedMessage);
-
-            String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
-            broadcast(finishedMessage, getSender(receivedPacket));
+            boolean connected = checkConnection(getSender(receivedPacket));
+            if(connected){
+                String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
+                broadcast(finishedMessage, getSender(receivedPacket));
+            }
+            else{
+                sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+            }
         } while (true);
     }
 }
