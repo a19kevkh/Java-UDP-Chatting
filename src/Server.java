@@ -49,6 +49,12 @@ public class Server extends Thread {
         }
     }
 
+    public void sendToAddress(String sender, String msg, InetAddress address, int port){
+        String finishedMessage = sender + "- " + msg;
+        DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, address, port);
+        serverEnd.sendPacket(replyPacket);
+    }
+
     public void sendPrivateMessage(String msg, String sender, String receiver){
         String memberData = null;
         for(int i = 0; i < connectedMembers.size(); i++){
@@ -109,6 +115,16 @@ public class Server extends Thread {
 
     }
 
+    public boolean checkConnection(String username){
+        for(int i = 0; i < memberNames.size(); i++){
+            System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
+            if(username.contains(memberNames.get(i))){
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void run() {
         do {
             DatagramPacket receivedPacket = serverEnd.receivePacket();
@@ -125,26 +141,37 @@ public class Server extends Thread {
                     broadcast(getSender(receivedPacket) + " joined the chat!", "Server");
                 }
                 else {
-                    sendPrivateMessage("Username already taken", "Server", getSender(receivedPacket));
+                    sendToAddress("Server","Username already taken", receivedPacket.getAddress(), receivedPacket.getPort());
                 }
                 continue;
             }
 
             // Check whether it is a “tell” message
             if (receivedMessageTrim.contains("/tell")) {
-                String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
-                String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
-                sendPrivateMessage(msg, getSender(receivedPacket),user);
-                sendPrivateMessage(msg, getSender(receivedPacket),getSender(receivedPacket));
-                // cut away "/tell" from the message
-                // trim any leading spaces from the resulting message
-                // split message into “recipient” name and the message
+                boolean connected = checkConnection(getSender(receivedPacket));
+                if(connected) {
+                    String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
+                    if(user !=null){
+                        String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
+                        sendPrivateMessage(msg, getSender(receivedPacket), user);
+                        sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
+                        // cut away "/tell" from the message
+                        // trim any leading spaces from the resulting message
+                        // split message into “recipient” name and the message
+                    }
+                    else{
+                        sendPrivateMessage("Cannot find user","Server",getSender(receivedPacket));
+                    }
+                }
+                else{
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+                }
                 continue;
             }
 
             // Check whether it is a “list” message
             if (receivedMessageTrim.contains("/list")) {
-                //sendPrivateMessage("testtest","Server",getSender(receivedPacket));
+                
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
@@ -162,9 +189,14 @@ public class Server extends Thread {
             // if senderName is a member then ...
             // broadcast(receivedMessage, getSender(receivedPacket));
             //(receivedMessage);
-
-            String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
-            broadcast(finishedMessage, getSender(receivedPacket));
+            boolean connected = checkConnection(getSender(receivedPacket));
+            if(connected){
+                String finishedMessage = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 0);
+                broadcast(finishedMessage, getSender(receivedPacket));
+            }
+            else{
+                sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+            }
         } while (true);
     }
 }
