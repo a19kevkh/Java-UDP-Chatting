@@ -49,6 +49,12 @@ public class Server extends Thread {
         }
     }
 
+    public void sendToAddress(String sender, String msg, InetAddress address, int port){
+        String finishedMessage = sender + "- " + msg;
+        DatagramPacket replyPacket = serverEnd.makeNewPacket(finishedMessage, address, port);
+        serverEnd.sendPacket(replyPacket);
+    }
+
     public void sendPrivateMessage(String msg, String sender, String receiver){
         String memberData = null;
         for(int i = 0; i < connectedMembers.size(); i++){
@@ -111,7 +117,8 @@ public class Server extends Thread {
 
     public boolean checkConnection(String username){
         for(int i = 0; i < memberNames.size(); i++){
-            if(username == memberNames.get(i)){
+            System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
+            if(username.contains(memberNames.get(i))){
                 return true;
             }
         }
@@ -134,7 +141,7 @@ public class Server extends Thread {
                     broadcast(getSender(receivedPacket) + " joined the chat!", "Server");
                 }
                 else {
-                    sendPrivateMessage("Username already taken", "Server", getSender(receivedPacket));
+                    sendToAddress("Server","Username already taken", receivedPacket.getAddress(), receivedPacket.getPort());
                 }
                 continue;
             }
@@ -142,7 +149,6 @@ public class Server extends Thread {
             // Check whether it is a “tell” message
             if (receivedMessageTrim.contains("/tell")) {
                 boolean connected = checkConnection(getSender(receivedPacket));
-                System.err.println(connected);
                 if(connected) {
                     String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
                     String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
@@ -153,9 +159,8 @@ public class Server extends Thread {
                     // split message into “recipient” name and the message
                 }
                 else{
-                    System.err.println("ERROR");
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
                 }
-                connected = false;
                 continue;
             }
 
