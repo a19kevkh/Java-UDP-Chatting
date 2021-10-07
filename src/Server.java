@@ -86,12 +86,15 @@ public class Server extends Thread {
         }
     }
     public String getReceiver(String name, String trimmedMsg, int commandLength){
-        // "name-/tell user msg"
-        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        // "name-/tell user- msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user- msg} Part4={user}
         int commandPartEnd = name.length() + commandLength + 2;
         String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+        int index = part3.indexOf("-");
+        String part4 = part3.substring(0,index);
         for(int i = 0; i < memberNames.size(); i++){
-            if(part3.contains(memberNames.get(i))){
+            //if(part4.contains(memberNames.get(i))){
+            if(part4.equals(memberNames.get(i))){
                 return memberNames.get(i);
             }
         }
