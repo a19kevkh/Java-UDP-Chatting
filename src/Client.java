@@ -51,6 +51,7 @@ public class Client extends Thread implements ActionListener {
         String replyMessage = clientEnd.unmarshall(replyPacket.getData());
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
+        System.err.println(name+" stop: "+System.nanoTime());
         }
     }
 
@@ -73,6 +74,7 @@ public class Client extends Thread implements ActionListener {
 
         // send the message
         clientEnd.sendPacket(messagePacket);
+        System.err.println("start: "+System.nanoTime());
 
         // clear the GUI input field, using a utility function of ChatGUI
         chatGUI.clearInput();

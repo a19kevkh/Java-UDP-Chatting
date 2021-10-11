@@ -154,10 +154,12 @@ public class Server extends Thread {
                 boolean connected = checkConnection(getSender(receivedPacket));
                 if(connected) {
                     String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
-                    if(user !=null){
+                    if(user !=null && !user.equals(getSender(receivedPacket))){
                         String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
                         sendPrivateMessage(msg, getSender(receivedPacket), user);
                         sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
+
+
                         // cut away "/tell" from the message
                         // trim any leading spaces from the resulting message
                         // split message into “recipient” name and the message
