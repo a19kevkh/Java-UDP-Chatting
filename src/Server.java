@@ -47,6 +47,11 @@ public class Server extends Thread {
         for (int i = 0; i < memberNames.size(); i++) {
             sendPrivateMessage(message, sender, memberNames.get(i));
         }
+        /* To test RTT
+        if(connectedMembers.size() >= 4){
+            sendPrivateMessage("BROADCAST DONE", "Server", "client4");
+        }
+        */
     }
 
     public void sendToAddress(String sender, String msg, InetAddress address, int port){
@@ -120,7 +125,7 @@ public class Server extends Thread {
 
     public boolean checkConnection(String username){
         for(int i = 0; i < memberNames.size(); i++){
-            System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
+            //System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
             if(username.contains(memberNames.get(i))){
                 return true;
             }
@@ -198,7 +203,7 @@ public class Server extends Thread {
                 if(connected) {
                     for(int i = 0; i < memberNames.size(); i++){
                         if(getSender(receivedPacket).contains(memberNames.get(i))){
-                            System.out.println(connectedMembers.get(i) + " " + memberNames.get(i));
+                            //System.out.println(connectedMembers.get(i) + " " + memberNames.get(i));
                             connectedMembers.remove(i);
                             memberNames.remove(i);
                             broadcast(getSender(receivedPacket) + " left the chat!", "Server");
