@@ -47,6 +47,11 @@ public class Server extends Thread {
         for (int i = 0; i < memberNames.size(); i++) {
             sendPrivateMessage(message, sender, memberNames.get(i));
         }
+        /* To test RTT
+        if(connectedMembers.size() >= 4){
+            sendPrivateMessage("BROADCAST DONE", "Server", "client4");
+        }
+        */
     }
 
     public void sendToAddress(String sender, String msg, InetAddress address, int port){
@@ -86,12 +91,15 @@ public class Server extends Thread {
         }
     }
     public String getReceiver(String name, String trimmedMsg, int commandLength){
-        // "name-/tell user msg"
-        //  senderPart={name-} commandPart={/tell} Part3={user msg}
+        // "name-/tell user- msg"
+        //  senderPart={name-} commandPart={/tell} Part3={user- msg} Part4={user}
         int commandPartEnd = name.length() + commandLength + 2;
         String part3 = trimmedMsg.substring(commandPartEnd, trimmedMsg.length());
+        int index = part3.indexOf("-");
+        String part4 = part3.substring(0,index);
         for(int i = 0; i < memberNames.size(); i++){
-            if(part3.contains(memberNames.get(i))){
+            //if(part4.contains(memberNames.get(i))){
+            if(part4.equals(memberNames.get(i))){
                 return memberNames.get(i);
             }
         }
@@ -117,7 +125,7 @@ public class Server extends Thread {
 
     public boolean checkConnection(String username){
         for(int i = 0; i < memberNames.size(); i++){
-            System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
+            //System.out.println("username= "+username + " memberNames(i)= " + memberNames.get(i));
             if(username.contains(memberNames.get(i))){
                 return true;
             }
@@ -151,10 +159,12 @@ public class Server extends Thread {
                 boolean connected = checkConnection(getSender(receivedPacket));
                 if(connected) {
                     String user = getReceiver(getSender(receivedPacket), receivedMessageTrim, 5);
-                    if(user !=null){
+                    if(user !=null && !user.equals(getSender(receivedPacket))){
                         String msg = getMessageOnly(getSender(receivedPacket), receivedMessageTrim, 5);
                         sendPrivateMessage(msg, getSender(receivedPacket), user);
                         sendPrivateMessage(msg, getSender(receivedPacket), getSender(receivedPacket));
+
+
                         // cut away "/tell" from the message
                         // trim any leading spaces from the resulting message
                         // split message into “recipient” name and the message
@@ -171,14 +181,39 @@ public class Server extends Thread {
 
             // Check whether it is a “list” message
             if (receivedMessageTrim.contains("/list")) {
-                
+                boolean connected = checkConnection(getSender(receivedPacket));
+                if(connected) {
+                    sendPrivateMessage("All connected users:","Server",getSender(receivedPacket));
+                    for(int i = 0; i < memberNames.size(); i++){
+                        sendPrivateMessage(memberNames.get(i),"Server",getSender(receivedPacket));
+                    }
+                    sendPrivateMessage("Done!","Server",getSender(receivedPacket));
+                }
+                else{
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+                }
                 // Get connected member names list
                 // sendPrivateMessage(namesList, "Server", getSender(receivedPacket));
                 continue;
             }
 
             // Check whether it is a “leave” message
-            if (false) {
+            if (receivedMessageTrim.contains("/leave")) {
+                boolean connected = checkConnection(getSender(receivedPacket));
+                if(connected) {
+                    for(int i = 0; i < memberNames.size(); i++){
+                        if(getSender(receivedPacket).contains(memberNames.get(i))){
+                            //System.out.println(connectedMembers.get(i) + " " + memberNames.get(i));
+                            connectedMembers.remove(i);
+                            memberNames.remove(i);
+                            broadcast(getSender(receivedPacket) + " left the chat!", "Server");
+                        }
+                    }
+                }
+
+                else{
+                    sendToAddress("Server","Handshake required", receivedPacket.getAddress(), receivedPacket.getPort());
+                }
                 // (Server) broadcasts notification to members
                 // broadcast(senderName + " left the chat", "Server");
                 // remove sender name from chat members

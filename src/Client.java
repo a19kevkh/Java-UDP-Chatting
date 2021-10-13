@@ -37,13 +37,7 @@ public class Client extends Thread implements ActionListener {
 
     public void run() {
         chatGUI = new ChatGUI(this,name);
-/*
-        //System.out.println("HIT");
-        // Make a request packet
-        DatagramPacket requestPacket = clientEnd.makeNewPacket(requestMessage, serverAddress, serverPortNumber);
-        // Now send it to server
-        clientEnd.sendPacket(requestPacket);
- */
+
         // Receive a reply from server
         while(true){
         DatagramPacket replyPacket = clientEnd.receivePacket();
@@ -51,6 +45,8 @@ public class Client extends Thread implements ActionListener {
         String replyMessage = clientEnd.unmarshall(replyPacket.getData());
         //System.out.println(name + " received: " + replyMessage);
         chatGUI.displayMessage(replyMessage);
+        //String replyMessageTrim = replyMessage.trim();
+        //System.err.println(replyMessageTrim+ ". " +name+" stop: "+System.nanoTime());
         }
     }
 
@@ -73,6 +69,7 @@ public class Client extends Thread implements ActionListener {
 
         // send the message
         clientEnd.sendPacket(messagePacket);
+        //System.err.println(name+ " start: "+System.nanoTime());
 
         // clear the GUI input field, using a utility function of ChatGUI
         chatGUI.clearInput();
